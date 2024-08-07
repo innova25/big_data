@@ -1,0 +1,102 @@
+version: "1"
+networks:
+  word_count_2:
+    driver: bridge
+
+services:
+  namenode:
+    image: apache/hadoop:3.3.6
+    hostname: namenode
+    command: ["hdfs", "namenode"]
+    ports:
+      - 9870:9870
+    env_file:
+      - ./config
+    environment:
+      ENSURE_NAMENODE_DIR: "/tmp/hadoop-hadoop/dfs/name"
+    networks:
+      - word_count_2
+
+  datanode1:
+    image: apache/hadoop:3.3.6
+    command: ["hdfs", "datanode"]
+    env_file:
+      - ./config
+    depends_on:
+      - namenode
+    networks:
+      - word_count_2
+  datanode2:
+    image: apache/hadoop:3.3.6
+    command: [ "hdfs", "datanode" ]
+    env_file:
+      - ./config
+    depends_on:
+      - namenode
+    networks:
+      - word_count_2
+  datanode3:
+    image: apache/hadoop:3.3.6
+    command: [ "hdfs", "datanode" ]
+    env_file:
+      - ./config
+    depends_on:
+      - namenode
+    networks:
+      - word_count_2
+
+  resourcemanager:
+    image: apache/hadoop:3.3.6
+    hostname: resourcemanager
+    command: ["yarn", "resourcemanager"]
+    ports:
+      - 8088:8088
+      - 8032:8032
+    env_file:
+      - ./config
+    volumes:
+      - ./test.sh:/opt/test.sh
+    networks:
+      - word_count_2
+
+  nodemanager1:
+    image: apache/hadoop:3.3.6
+    ports:
+      - 8041:8042
+    command: ["yarn", "nodemanager"]
+    env_file:
+      - ./config
+    networks:
+      - word_count_2
+  nodemanager2:
+    image: apache/hadoop:3.3.6
+    ports:
+      - 8042:8042
+    command: [ "yarn", "nodemanager" ]
+    env_file:
+      - ./config
+    networks:
+      - word_count_2
+  nodemanager3:
+    image: apache/hadoop:3.3.6
+    ports:
+      - 8043:8042
+    command: [ "yarn", "nodemanager" ]
+    env_file:
+      - ./config
+    networks:
+      - word_count_2
+
+  spark:
+    build: .
+    container_name: spark
+    volumes:
+      - ./yarn_config:/opt/hadoop/etc/hadoop
+    environment:
+      HADOOP_CONF_DIR: yarn_config
+      YARN_CONF_DIR: yarn_config
+    ports:
+      - 8080:8080
+      - 7077:7077
+    networks:
+      - word_count_2
