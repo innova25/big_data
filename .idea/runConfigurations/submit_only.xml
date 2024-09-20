@@ -1,0 +1,111 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="submit only" type="SparkSubmitConfigurationType" factoryName="ClusterSparkJobConfigurationType" show_console_on_std_err="false" show_console_on_std_out="false">
+    <option name="allowRunningInParallel" value="false" />
+    <option name="archives">
+      <list />
+    </option>
+    <option name="artifactArgs" value="" />
+    <option name="artifactPath">
+      <FilePath>
+        <option name="path" value="$PROJECT_DIR$/target/scala-2.12/yarn-assembly-0.1.0-SNAPSHOT.jar" />
+        <option name="type" value="upload" />
+      </FilePath>
+    </option>
+    <option name="beforeShellScript" value="" />
+    <option name="className" value="job.Main" />
+    <option name="clusterManager" value="YARN" />
+    <option name="clusterManagerDeployModeDefault" value="false" />
+    <option name="conf" value="" />
+    <option name="debugDriverEnable" value="true" />
+    <option name="debugDriverPort" />
+    <option name="debugDriverSuspend" />
+    <option name="deployMode" value="CLUSTER" />
+    <option name="driverClassPath">
+      <list />
+    </option>
+    <option name="driverCores" value="" />
+    <option name="driverJavaOptions" value="" />
+    <option name="driverLibraryPath">
+      <list />
+    </option>
+    <option name="driverMemory" value="" />
+    <option name="envParams" value="" />
+    <option name="excludePackages" value="" />
+    <option name="executorCores" value="1" />
+    <option name="executorMemory" value="512M" />
+    <option name="files">
+      <list />
+    </option>
+    <option name="interactive" value="false" />
+    <option name="jars">
+      <list />
+    </option>
+    <option name="keytab">
+      <FilePath>
+        <option name="path" value="" />
+        <option name="type" value="" />
+      </FilePath>
+    </option>
+    <option name="master" value="local" />
+    <option name="numExecutors" value="1" />
+    <option name="packages" value="org.apache.spark:spark-streaming-kafka-0-10_2.13:3.5.2,org.apache.kafka:kafka-clients:3.5.2" />
+    <option name="principal" value="" />
+    <option name="projectPathOnTarget" />
+    <option name="propertiesFile">
+      <FilePath>
+        <option name="path" value="" />
+        <option name="type" value="" />
+      </FilePath>
+    </option>
+    <option name="proxyUser" value="" />
+    <option name="pyFiles">
+      <list />
+    </option>
+    <option name="queue" value="" />
+    <option name="remoteTargetId">
+      <RemoteTargetId>
+        <option name="clusterId" value="4441f6e0-e18f-4f52-bac2-75a1d1facc6d" />
+        <option name="connectionId" value="ssh" />
+        <option name="name" value="huser@master:22" />
+      </RemoteTargetId>
+    </option>
+    <option name="repositories" value="" />
+    <option name="selectedOptions">
+      <list />
+    </option>
+    <option name="shellExecutor" value="/bin/bash" />
+    <option name="sparkHome" value="$PROJECT_DIR$/../../../huser/spark" />
+    <option name="sparkMonitoringDriverId" value="" />
+    <option name="supervise" value="false" />
+    <option name="targetDirectory">
+      <FilePath>
+        <option name="path" value="$PROJECT_DIR$/../../../huser/application" />
+        <option name="type" value="server" />
+      </FilePath>
+    </option>
+    <option name="template" value="false" />
+    <option name="totalExecutorCores" value="" />
+    <option name="verbose" value="false" />
+    <option name="visibleBlocks">
+      <map>
+        <entry key="SPARK_CONFIG" value="true" />
+        <entry key="DEPENDENCIES" value="false" />
+        <entry key="MAVEN_DEPENDENCIES" value="true" />
+        <entry key="DRIVER" value="false" />
+        <entry key="EXECUTOR" value="true" />
+        <entry key="KERBEROS" value="false" />
+        <entry key="ADDITIONAL" value="false" />
+        <entry key="SHELL_OPTIONS" value="false" />
+      </map>
+    </option>
+    <option name="workDirectoryPath">
+      <FilePath>
+        <option name="path" value="" />
+        <option name="type" value="server" />
+      </FilePath>
+    </option>
+    <method v="2">
+      <option name="SftpSparkFileUpload" enabled="true" />
+    </method>
+  </configuration>
+</component>

@@ -91,7 +91,7 @@ services:
     build: .
     container_name: spark
     volumes:
-      - ./yarn_config:/opt/hadoop/etc/hadoop
+      - ./yarn_config:/opt/bitnami/spark/conf
     environment:
       HADOOP_CONF_DIR: yarn_config
       YARN_CONF_DIR: yarn_config

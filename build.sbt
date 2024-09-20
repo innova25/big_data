@@ -7,7 +7,11 @@ lazy val root = (project in file("."))
     assembly / mainClass := Some("Main"),
     name := "yarn",
     libraryDependencies ++= Seq(
-      "org.apache.spark" %% "spark-sql" % "3.5.1",
+      "org.apache.spark" %% "spark-core" % "3.5.2",
+      "org.apache.spark" %% "spark-streaming" % "3.5.2",
+      "org.apache.spark" %% "spark-sql" % "3.5.2",
+      "org.apache.spark" %% "spark-streaming-kafka-0-10" % "3.5.2",
+      "org.apache.kafka" % "kafka-clients" % "3.5.2"
     )
   )
 
