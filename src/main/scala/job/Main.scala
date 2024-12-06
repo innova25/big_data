@@ -16,15 +16,15 @@ object Main {
     val streamingContext = StreamingContext.getOrCreate(checkpointDir, createStreamingContext)
 
     val kafkaParams = Map[String, Object](
-      "bootstrap.servers" -> "master:9092, master:9095, master:9096",
+      "bootstrap.servers" -> "kafka1:9092, kafka2:9092, kafka3:9092",
       "key.deserializer" -> classOf[StringDeserializer],
       "value.deserializer" -> classOf[StringDeserializer],
-      "group.id" -> "spark_intra_network_call",
+      "group.id" -> "spark_off_network_call",
       "auto.offset.reset" -> "latest",
       "enable.auto.commit" -> (false: java.lang.Boolean)
     )
 
-    val topics = Array("intra_network_call")
+    val topics = Array("intra_off_call")
 
     val stream = KafkaUtils.createDirectStream[String, String](
       streamingContext,

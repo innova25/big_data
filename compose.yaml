@@ -35,15 +35,6 @@ services:
       - namenode
     networks:
       - word_count_2
-  datanode3:
-    image: apache/hadoop:3.3.6
-    command: [ "hdfs", "datanode" ]
-    env_file:
-      - ./config
-    depends_on:
-      - namenode
-    networks:
-      - word_count_2
 
   resourcemanager:
     image: apache/hadoop:3.3.6
@@ -77,16 +68,6 @@ services:
       - ./config
     networks:
       - word_count_2
-  nodemanager3:
-    image: apache/hadoop:3.3.6
-    ports:
-      - 8043:8042
-    command: [ "yarn", "nodemanager" ]
-    env_file:
-      - ./config
-    networks:
-      - word_count_2
-
   spark:
     build: .
     container_name: spark
@@ -98,5 +79,56 @@ services:
     ports:
       - 8080:8080
       - 7077:7077
+    networks:
+      - word_count_2
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.2.1
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    networks:
+      - word_count_2
+  kafka1:
+    container_name: kafka1
+    build: .
+    ports:
+      - "8097:8097"
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: EXTERNAL:PLAINTEXT,INTERNAL:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: EXTERNAL://localhost:8097,INTERNAL://kafka1:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_OPTS: "-javaagent:/opt/prometheus/jmx_prometheus_javaagent-0.3.1.jar=7071:/opt/prometheus/kafka-jmx-metrics.yaml"
+  kafka2:
+    image: confluentinc/cp-kafka:7.2.1
+    container_name: kafka2
+    ports:
+      - "8098:8098"
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 2
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: EXTERNAL:PLAINTEXT,INTERNAL:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: EXTERNAL://localhost:8098,INTERNAL://kafka2:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+    networks:
+      - word_count_2
+  kafka3:
+    image: confluentinc/cp-kafka:7.2.1
+    container_name: kafka3
+    ports:
+      - "8099:8099"
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 3
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: EXTERNAL:PLAINTEXT,INTERNAL:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: EXTERNAL://localhost:8099,INTERNAL://kafka3:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
     networks:
       - word_count_2
