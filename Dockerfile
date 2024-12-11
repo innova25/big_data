@@ -1,4 +1,7 @@
-FROM bitnami/spark:3.5.1
-COPY ./yarn_config/core-site.xml /opt/bitnami/spark/conf
-COPY ./yarn_config/yarn-site.xml /opt/bitnami/spark/conf
-COPY ./yarn_config/hdfs-site.xml /opt/bitnami/spark/conf
+
+FROM apache/superset:latest
+
+USER root
+RUN pip install psycopg2-binary pyhive thrift thrift_sasl
+
+USER superset

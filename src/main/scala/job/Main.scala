@@ -9,14 +9,14 @@ import org.apache.spark.streaming.{Seconds, StreamingContext, Time}
 
 object Main {
 
-  private val checkpointDir = "hdfs://master:9000/checkpoint-spark-streaming-reduce"
+  private val checkpointDir = "hdfs://namenode:8020/checkpoint-spark-streaming-reduce"
 
   def main(args: Array[String]): Unit = {
 
     val streamingContext = StreamingContext.getOrCreate(checkpointDir, createStreamingContext)
 
     val kafkaParams = Map[String, Object](
-      "bootstrap.servers" -> "kafka1:9092, kafka2:9092, kafka3:9092",
+      "bootstrap.servers" -> "kafka1:8097, kafka2:8098, kafka3:8099",
       "key.deserializer" -> classOf[StringDeserializer],
       "value.deserializer" -> classOf[StringDeserializer],
       "group.id" -> "spark_off_network_call",
@@ -36,7 +36,7 @@ object Main {
 
     lines.foreachRDD((rdd: RDD[String], time: Time) => {
       if (!rdd.isEmpty()) {
-        val hdfsPath = s"hdfs://master:9000/intra-network/output_${time.milliseconds}"
+        val hdfsPath = s"hdfs://namenode:8020/intra-network/output_${time.milliseconds}"
         rdd.saveAsTextFile(hdfsPath)
       }
     })
@@ -47,8 +47,8 @@ object Main {
   }
 
   private def createStreamingContext(): StreamingContext = {
-    val sparkConfig = new SparkConf().setMaster("yarn").setAppName("Intra-network stream")
-    val streamingContext = new StreamingContext(sparkConfig, Seconds(120))
+    val sparkConfig = new SparkConf().setMaster("spark://spark-master:7077").setAppName("Intra-network stream")
+    val streamingContext = new StreamingContext(sparkConfig, Seconds(30))
     streamingContext.checkpoint(checkpointDir)
     streamingContext
   }

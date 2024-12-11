@@ -1,17 +1,19 @@
-version: "1"
+version: "3.8"
 networks:
   word_count_2:
     driver: bridge
 
 services:
+  # Hadoop HDFS
   namenode:
     image: apache/hadoop:3.3.6
+    container_name: namenode
     hostname: namenode
     command: ["hdfs", "namenode"]
-    ports:
-      - 9870:9870
     env_file:
       - ./config
+    ports:
+      - "9870:9870" # NameNode Web UI
     environment:
       ENSURE_NAMENODE_DIR: "/tmp/hadoop-hadoop/dfs/name"
     networks:
@@ -19,6 +21,7 @@ services:
 
   datanode1:
     image: apache/hadoop:3.3.6
+    container_name: datanode1
     command: ["hdfs", "datanode"]
     env_file:
       - ./config
@@ -26,9 +29,11 @@ services:
       - namenode
     networks:
       - word_count_2
+
   datanode2:
     image: apache/hadoop:3.3.6
-    command: [ "hdfs", "datanode" ]
+    container_name: datanode2
+    command: ["hdfs", "datanode"]
     env_file:
       - ./config
     depends_on:
@@ -36,51 +41,43 @@ services:
     networks:
       - word_count_2
 
-  resourcemanager:
-    image: apache/hadoop:3.3.6
-    hostname: resourcemanager
-    command: ["yarn", "resourcemanager"]
-    ports:
-      - 8088:8088
-      - 8032:8032
-    env_file:
-      - ./config
-    volumes:
-      - ./test.sh:/opt/test.sh
-    networks:
-      - word_count_2
-
-  nodemanager1:
-    image: apache/hadoop:3.3.6
-    ports:
-      - 8041:8042
-    command: ["yarn", "nodemanager"]
-    env_file:
-      - ./config
-    networks:
-      - word_count_2
-  nodemanager2:
-    image: apache/hadoop:3.3.6
-    ports:
-      - 8042:8042
-    command: [ "yarn", "nodemanager" ]
-    env_file:
-      - ./config
-    networks:
-      - word_count_2
-  spark:
-    build: .
-    container_name: spark
-    volumes:
-      - ./yarn_config:/opt/bitnami/spark/conf
+  # Spark Standalone
+  spark-master:
+    image: bitnami/spark:3.4.1
+    container_name: spark-master
     environment:
-      HADOOP_CONF_DIR: yarn_config
-      YARN_CONF_DIR: yarn_config
+      - SPARK_MODE=master
+      - SPARK_MASTER_HOST=spark-master
+      - SPARK_MASTER_WEBUI_PORT=8080
     ports:
       - 8080:8080
       - 7077:7077
     networks:
       - word_count_2
+
+  spark-worker1:
+    image: bitnami/spark:3.4.1
+    container_name: spark-worker1
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+    ports:
+      - "8081:8081" # Spark Worker1 Web UI
+    networks:
+      - word_count_2
+
+  spark-worker2:
+    image: bitnami/spark:3.4.1
+    container_name: spark-worker2
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+    ports:
+      - "8082:8081" # Spark Worker2 Web UI
+    networks:
+      - word_count_2
+
+  # Kafka and Zookeeper
   zookeeper:
     image: confluentinc/cp-zookeeper:7.2.1
     container_name: zookeeper
@@ -88,9 +85,10 @@ services:
       ZOOKEEPER_CLIENT_PORT: 2181
     networks:
       - word_count_2
+
   kafka1:
+    image: confluentinc/cp-kafka:7.2.1
     container_name: kafka1
-    build: .
     ports:
       - "8097:8097"
     depends_on:
@@ -98,10 +96,10 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: EXTERNAL:PLAINTEXT,INTERNAL:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: EXTERNAL://localhost:8097,INTERNAL://kafka1:9092
-      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
-      KAFKA_OPTS: "-javaagent:/opt/prometheus/jmx_prometheus_javaagent-0.3.1.jar=7071:/opt/prometheus/kafka-jmx-metrics.yaml"
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka1:8097
+    networks:
+      - word_count_2
+
   kafka2:
     image: confluentinc/cp-kafka:7.2.1
     container_name: kafka2
@@ -112,11 +110,10 @@ services:
     environment:
       KAFKA_BROKER_ID: 2
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: EXTERNAL:PLAINTEXT,INTERNAL:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: EXTERNAL://localhost:8098,INTERNAL://kafka2:9092
-      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka2:8098
     networks:
       - word_count_2
+
   kafka3:
     image: confluentinc/cp-kafka:7.2.1
     container_name: kafka3
@@ -127,8 +124,56 @@ services:
     environment:
       KAFKA_BROKER_ID: 3
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: EXTERNAL:PLAINTEXT,INTERNAL:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: EXTERNAL://localhost:8099,INTERNAL://kafka3:9092
-      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka3:8099
+    networks:
+      - word_count_2
+
+
+  # Kafka UI
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    ports:
+      - "9000:8080" # Kafka UI Web Interface
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=local
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka1:8097,kafka2:8098,kafka3:8099
+      - KAFKA_CLUSTERS_0_ZOOKEEPER=zookeeper:2181
+    depends_on:
+      - kafka1
+      - kafka2
+      - kafka3
+    networks:
+      - word_count_2
+  superset:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: superset
+    ports:
+      - "8088:8088"
+    environment:
+      SUPERSET_WEBSERVER_PORT: 8088
+    volumes:
+      - ./superset:/app/superset_home
+      - ./superset_config.py:/app/pythonpath/superset_config.py
+    depends_on:
+      - db
+    networks:
+      - word_count_2
+
+
+  db:
+    image: postgres:15
+    container_name: superset-db
+    environment:
+      POSTGRES_USER: superset
+      POSTGRES_PASSWORD: superset
+      POSTGRES_DB: superset
+    ports:
+      - "5432:5432"
+    restart: always
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
     networks:
       - word_count_2
