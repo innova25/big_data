@@ -1,0 +1,6 @@
+Flask
+pandas
+pyhive
+plotly
+thrift
+thrift-sasl
