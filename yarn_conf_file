@@ -1,9 +1,0 @@
-"spark.metrics.conf.*.sink.graphite.class"="org.apache.spark.metrics.sink.GraphiteSink"
-"spark.metrics.conf.*.sink.graphite.host"="localhost"
-"spark.metrics.conf.*.sink.graphite.port"=2003
-"spark.metrics.conf.*.sink.graphite.period"=10
-"spark.metrics.conf.*.sink.graphite.unit"=seconds
-"spark.metrics.conf.*.sink.graphite.prefix"="lucatest"
-"spark.metrics.conf.*.source.jvm.class"="org.apache.spark.metrics.source.JvmSource"
-"spark.metrics.staticSources.enabled"=true
-"spark.metrics.appStatusSource.enabled"=true

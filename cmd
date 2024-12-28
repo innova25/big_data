@@ -1,1 +1,0 @@
-spark-submit --master spark://spark-master:7077 --deploy-mode client --class job.Main --name "submit only" --packages org.apache.spark:spark-streaming-kafka-0-10_2.13:3.5.2,org.apache.kafka:kafka-clients:3.5.2 /home/scala-2.12/yarn-assembly-0.1.0-SNAPSHOT.jar

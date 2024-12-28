@@ -1,8 +1,16 @@
 version: "3.8"
+
 networks:
   word_count_2:
     driver: bridge
-
+volumes:
+  middle_var: {}
+  historical_var: {}
+  broker_var: {}
+  coordinator_var: {}
+  router_var: {}
+  druid_shared: {}
+  overlord_var: {}
 services:
   # Hadoop HDFS
   namenode:
@@ -50,8 +58,9 @@ services:
       - SPARK_MASTER_HOST=spark-master
       - SPARK_MASTER_WEBUI_PORT=8080
     ports:
-      - 8080:8080
-      - 7077:7077
+      - "8080:8080"
+      - "7077:7077"
+      - "10000:10000"
     networks:
       - word_count_2
 
@@ -76,13 +85,13 @@ services:
       - "8082:8081" # Spark Worker2 Web UI
     networks:
       - word_count_2
-
   # Kafka and Zookeeper
   zookeeper:
     image: confluentinc/cp-zookeeper:7.2.1
     container_name: zookeeper
     environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
+      - ZOOKEEPER_CLIENT_PORT= 2181
+      - ZOO_MY_ID=1
     networks:
       - word_count_2
 
@@ -128,23 +137,7 @@ services:
     networks:
       - word_count_2
 
-
-  # Kafka UI
-  kafka-ui:
-    image: provectuslabs/kafka-ui:latest
-    container_name: kafka-ui
-    ports:
-      - "9000:8080" # Kafka UI Web Interface
-    environment:
-      - KAFKA_CLUSTERS_0_NAME=local
-      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka1:8097,kafka2:8098,kafka3:8099
-      - KAFKA_CLUSTERS_0_ZOOKEEPER=zookeeper:2181
-    depends_on:
-      - kafka1
-      - kafka2
-      - kafka3
-    networks:
-      - word_count_2
+  # Superset
   superset:
     build:
       context: .
@@ -162,6 +155,14 @@ services:
     networks:
       - word_count_2
 
+  python_app:
+    build:
+      context: ./pythonProject/
+    container_name: flask_app
+    ports:
+      - "5000:5000"
+    networks:
+      - word_count_2
 
   db:
     image: postgres:15
@@ -172,8 +173,119 @@ services:
       POSTGRES_DB: superset
     ports:
       - "5432:5432"
-    restart: always
     volumes:
       - ./postgres_data:/var/lib/postgresql/data
+    networks:
+      - word_count_2
+
+  # Apache Druid
+  coordinator:
+    image: apache/druid:31.0.0
+    container_name: coordinator
+    volumes:
+      - druid_shared:/opt/shared
+      - coordinator_var:/opt/druid/var
+    depends_on:
+      - zookeeper
+      - db
+    ports:
+      - "8071:8081"
+    command:
+      - coordinator
+    env_file:
+      - environment
+    networks:
+      - word_count_2
+
+  broker:
+    image: apache/druid:31.0.0
+    container_name: broker
+    volumes:
+      - broker_var:/opt/druid/var
+    depends_on:
+      - zookeeper
+      - db
+      - coordinator
+    ports:
+      - "8072:8082"
+    command:
+      - broker
+    env_file:
+      - environment
+    networks:
+      - word_count_2
+
+  historical:
+    image: apache/druid:31.0.0
+    container_name: historical
+    volumes:
+      - druid_shared:/opt/shared
+      - historical_var:/opt/druid/var
+    depends_on:
+      - zookeeper
+      - db
+      - coordinator
+    ports:
+      - "8083:8083"
+    command:
+      - historical
+    env_file:
+      - environment
+    networks:
+      - word_count_2
+  overlord:
+    image: apache/druid:31.0.0
+    container_name: overlord
+    volumes:
+      - druid_shared:/opt/shared
+      - overlord_var:/opt/druid/var
+    depends_on:
+      - zookeeper
+      - db
+      - coordinator
+    ports:
+      - "8090:8090"
+    command:
+      - historical
+    env_file:
+      - environment
+    networks:
+      - word_count_2
+
+  middlemanager:
+    image: apache/druid:31.0.0
+    container_name: middlemanager
+    volumes:
+      - druid_shared:/opt/shared
+      - middle_var:/opt/druid/var
+    depends_on:
+      - zookeeper
+      - db
+      - coordinator
+    ports:
+      - "8091:8091"
+      - "8100-8105:8100-8105"
+    command:
+      - middleManager
+    env_file:
+      - environment
+    networks:
+      - word_count_2
+
+  router:
+    image: apache/druid:31.0.0
+    container_name: router
+    volumes:
+      - router_var:/opt/druid/var
+    depends_on:
+      - zookeeper
+      - db
+      - coordinator
+    ports:
+      - "8888:8888"
+    command:
+      - router
+    env_file:
+      - environment
     networks:
       - word_count_2
