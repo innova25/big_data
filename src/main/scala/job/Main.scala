@@ -1,55 +1,50 @@
 package job
-import org.apache.kafka.common.serialization.StringDeserializer
-import org.apache.spark.SparkConf
-import org.apache.spark.rdd.RDD
-import org.apache.spark.streaming.kafka010.ConsumerStrategies._
-import org.apache.spark.streaming.kafka010.KafkaUtils
-import org.apache.spark.streaming.kafka010.LocationStrategies._
-import org.apache.spark.streaming.{Seconds, StreamingContext, Time}
+
+import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.streaming.Trigger
+
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 object Main {
 
-  private val checkpointDir = "hdfs://namenode:8020/checkpoint-spark-streaming-reduce"
-
   def main(args: Array[String]): Unit = {
+    // Tạo SparkSession
+    val spark = SparkSession.builder()
+      .appName("Kafka Stream to Single Daily Parquet File")
+      .master("spark://spark-master:7077")
+      .getOrCreate()
 
-    val streamingContext = StreamingContext.getOrCreate(checkpointDir, createStreamingContext)
+    // Đọc dữ liệu từ Kafka
+    val kafkaSource = spark.readStream
+      .format("kafka")
+      .option("kafka.bootstrap.servers", "kafka1:8097,kafka2:8098,kafka3:8099")
+      .option("subscribe", "ecommerce")
+      .option("startingOffsets", "latest")
+      .load()
 
-    val kafkaParams = Map[String, Object](
-      "bootstrap.servers" -> "kafka1:8097, kafka2:8098, kafka3:8099",
-      "key.deserializer" -> classOf[StringDeserializer],
-      "value.deserializer" -> classOf[StringDeserializer],
-      "group.id" -> "spark_off_network_call",
-      "auto.offset.reset" -> "latest",
-      "enable.auto.commit" -> (false: java.lang.Boolean)
-    )
+    import spark.implicits._
 
-    val topics = Array("intra_off_call")
+    // Chuyển đổi dữ liệu từ Kafka sang định dạng JSON
+    val parsedStream = kafkaSource.selectExpr("CAST(value AS STRING)").as[String]
+      .selectExpr("value AS json_string")
+      .selectExpr("from_json(json_string, 'event_time STRING, event_type STRING, product_id STRING, " +
+        "category_id STRING, category_code STRING, brand STRING, price DOUBLE, user_id STRING, user_session STRING') AS data")
+      .select("data.*")
 
-    val stream = KafkaUtils.createDirectStream[String, String](
-      streamingContext,
-      PreferConsistent,
-      Subscribe[String, String](topics, kafkaParams)
-    )
+    // Lấy ngày hiện tại theo định dạng yyyyMMdd
+    val dateFormatter = DateTimeFormatter.ofPattern("yyyyMMdd")
+    val currentDate = LocalDate.now().format(dateFormatter)
 
-    val lines = stream.map(record => record.value)
+    // Lưu dữ liệu vào một tệp duy nhất trong thư mục ngày
+    val query = parsedStream.writeStream
+      .format("parquet")
+      .option("path", s"hdfs://namenode:8020/daily/$currentDate/data.parquet") // Lưu vào tệp với ngày yyyyMMdd
+      .option("checkpointLocation", "hdfs://namenode:8020/checkpoint-spark-streaming-parquet") // Checkpoint để theo dõi tiến trình
+      .trigger(Trigger.ProcessingTime("120 seconds")) // Micro-batch 30 giây
+      .outputMode("append") // Ghi thêm vào tệp hiện có
+      .start()
 
-    lines.foreachRDD((rdd: RDD[String], time: Time) => {
-      if (!rdd.isEmpty()) {
-        val hdfsPath = s"hdfs://namenode:8020/intra-network/output_${time.milliseconds}"
-        rdd.saveAsTextFile(hdfsPath)
-      }
-    })
-
-
-    streamingContext.start()
-    streamingContext.awaitTermination()
-  }
-
-  private def createStreamingContext(): StreamingContext = {
-    val sparkConfig = new SparkConf().setMaster("spark://spark-master:7077").setAppName("Intra-network stream")
-    val streamingContext = new StreamingContext(sparkConfig, Seconds(30))
-    streamingContext.checkpoint(checkpointDir)
-    streamingContext
+    query.awaitTermination()
   }
 }
