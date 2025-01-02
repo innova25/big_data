@@ -42,7 +42,14 @@ start-thriftserver.sh \
     --conf spark.cores.max=10 \
     --executor-memory 2G
 ```
-
+Run the following command to create database:
+```bash
+    beeline
+```
+```bash
+    beeline> !connect jdbc:hive2://spark-master:10000
+    beeline> create database ecom
+```
 ## Setup Druid
 
 ### Step 1: Import Supervisor
@@ -68,9 +75,11 @@ spark-submit \
     --master spark://spark-master:7077 \
     --deploy-mode client \
     --class job.Main \
-    --packages org.apache.spark:spark-streaming-kafka-0-10_2.13:3.5.2,org.apache.kafka:kafka-clients:3.5.2 \
+    --packages org.apache.spark:spark-streaming-kafka-0-10_2.13:3.5.2,org.apache.kafka:kafka-clients:3.5.2,org.apache.spark:spark-sql-kafka-0-10_2.13:3.5.2 \
     --executor-memory 2G \
-    --executor-core 5 {path to jar}
+    --executor-cores 2 \
+    --conf spark.cores.max=6
+    {path to jar}
 ```
 
 #### Cluster Job
@@ -89,3 +98,10 @@ spark-submit \
 
 #### Daily Job
 Follow the above steps and configure appropriately for daily job requirements.
+```bash
+spark-submit \
+    --master spark://spark-master:7077 \
+    --deploy-mode client \ 
+    --class job.AppendToHistory \
+    {path to jar}
+```

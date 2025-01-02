@@ -10,13 +10,14 @@ lazy val root = (project in file("."))
       "org.apache.spark" %% "spark-core" % "3.5.2",
       "org.apache.spark" %% "spark-streaming" % "3.5.2",
       "org.apache.spark" %% "spark-sql" % "3.5.2",
-      "org.apache.spark" %% "spark-mllib"% "3.5.2",
+      "org.apache.spark" %% "spark-mllib" % "3.5.2",
       "org.apache.spark" %% "spark-streaming-kafka-0-10" % "3.5.2",
+      "org.apache.spark" %% "spark-sql-kafka-0-10" % "3.5.2",
       "org.apache.kafka" % "kafka-clients" % "3.5.2"
     )
   )
 
 ThisBuild / assemblyMergeStrategy := {
   case PathList("META-INF", _*) => MergeStrategy.discard
-  case _                        => MergeStrategy.first
+  case _ => MergeStrategy.first
 }

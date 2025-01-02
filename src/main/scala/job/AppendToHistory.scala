@@ -15,7 +15,7 @@ object AppendToHistory {
 
     // Định dạng ngày để lấy thư mục dữ liệu ngày hôm trước
     val dateFormatter = DateTimeFormatter.ofPattern("yyyyMMdd")
-    val yesterdayDate = LocalDate.now().minusDays(1).format(dateFormatter)
+    val yesterdayDate = LocalDate.now().format(dateFormatter)
 
     // Đường dẫn dữ liệu ngày hôm trước
     val dailyPath = s"hdfs://namenode:8020/daily/$yesterdayDate/data.parquet"

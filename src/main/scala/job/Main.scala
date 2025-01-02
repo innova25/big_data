@@ -18,7 +18,7 @@ object Main {
     // Đọc dữ liệu từ Kafka
     val kafkaSource = spark.readStream
       .format("kafka")
-      .option("kafka.bootstrap.servers", "kafka1:8097,kafka2:8098,kafka3:8099")
+      .option("kafka.bootstrap.servers", "kafka1:9092,kafka2:9092,kafka3:9092")
       .option("subscribe", "ecommerce")
       .option("startingOffsets", "latest")
       .load()
@@ -41,7 +41,7 @@ object Main {
       .format("parquet")
       .option("path", s"hdfs://namenode:8020/daily/$currentDate/data.parquet") // Lưu vào tệp với ngày yyyyMMdd
       .option("checkpointLocation", "hdfs://namenode:8020/checkpoint-spark-streaming-parquet") // Checkpoint để theo dõi tiến trình
-      .trigger(Trigger.ProcessingTime("120 seconds")) // Micro-batch 30 giây
+      .trigger(Trigger.ProcessingTime("30 seconds")) // Micro-batch 30 giây
       .outputMode("append") // Ghi thêm vào tệp hiện có
       .start()
 
