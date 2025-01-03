@@ -41,7 +41,7 @@ object Main {
       .format("parquet")
       .option("path", s"hdfs://namenode:8020/daily/$currentDate/data.parquet") // Lưu vào tệp với ngày yyyyMMdd
       .option("checkpointLocation", "hdfs://namenode:8020/checkpoint-spark-streaming-parquet") // Checkpoint để theo dõi tiến trình
-      .trigger(Trigger.ProcessingTime("30 seconds")) // Micro-batch 30 giây
+      .trigger(Trigger.ProcessingTime("5 seconds")) // Micro-batch 30 giây
       .outputMode("append") // Ghi thêm vào tệp hiện có
       .start()
 
