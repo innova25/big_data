@@ -36,4 +36,4 @@ kafka-console-consumer --bootstrap-server kafka1:9092,kafka2:9092,kafka3:9092 --
 
 2 lệnh trên sẽ tạo ra Producer và Consumer cho topic ecommerce, và bắt đầu có thể gửi thông điệp cho nhau qua topic.
 
-Sau khi cài đặt thành công Kafka topic và khởi tạo được Producer-Consumer, tiếp theo chạy lần lượt 2 file product_store.py để ghi nhớ các product, data_generator.py để khởi tạo streaming data (5/2020) và lưu thẳng vào topic name "ecommerce".
+Sau khi cài đặt thành công Kafka topic và khởi tạo được Producer-Consumer, tiếp theo chạy lần lượt 2 file product_store.py để tạo file product_cache.pkl, data_generator.py để khởi tạo streaming data và lưu thẳng vào topic name "ecommerce".
