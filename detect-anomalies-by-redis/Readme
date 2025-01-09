@@ -1,0 +1,71 @@
+Để chạy file này, cần cài đặt Redis trên máy tính của bạn.
+
+Hướng dẫn chạy Redis Stack bằng Docker trên Windows
+
+Bước 1: Cài đặt Docker Desktop
+
+Tải Docker Desktop cho Windows từ trang web chính thức: https://www.docker.com/products/docker-desktop/
+Cài đặt Docker Desktop bằng cách làm theo hướng dẫn trên màn hình.
+Khởi động Docker Desktop sau khi cài đặt xong.
+
+Bước 2: Chạy Redis Stack
+Mở terminal (Command Prompt hoặc PowerShell).
+Chạy lệnh sau để tải và chạy Redis Stack image:
+<!-- end list -->
+
+Bash
+docker run -d --name redis-stack -p 6379:6379 -p 8001:8001 redis/redis-stack:latest
+Hãy thận trọng khi sử dụng các đoạn mã.
+
+Lệnh này sẽ:
+
+Tải image redis/redis-stack:latest nếu chưa có sẵn trên máy.
+Chạy một container Docker với tên redis-stack.
+Mở cổng 6379 cho Redis server và 8001 cho Redis Insight.
+Chạy container ở chế độ background (-d).
+Bước 3: Truy cập Redis Insight
+
+Mở trình duyệt web và truy cập địa chỉ http://localhost:8001.
+Bạn sẽ thấy giao diện Redis Insight, cho phép bạn quản lý và trực quan hóa dữ liệu Redis.
+Bước 4: Kết nối với Redis CLI
+
+Mở một terminal mới.
+Chạy lệnh sau để kết nối với Redis CLI bên trong container:
+<!-- end list -->
+
+Bash
+docker exec -it redis-stack redis-cli
+Hãy thận trọng khi sử dụng các đoạn mã.
+
+Bây giờ bạn có thể sử dụng Redis CLI để tương tác với Redis server.
+
+Ngoài ra
+
+Dừng container cũ và chạy lại:
+
+Dừng container redis-stack bằng lệnh docker stop redis-stack.
+Xóa container bằng lệnh docker rm redis-stack.
+Chạy lại lệnh docker run để tạo container mới.
+4.  Khởi động lại container cũ:
+
+Nếu bạn muốn sử dụng lại container cũ, bạn có thể khởi động lại nó bằng lệnh docker start redis-stack.
+
+Hướng dẫn chạy chương trình này.
+
+1. chạy Redis stack. lưu ý phải chạy redis trên cổng 6379
+2. mở terminal và tạo môi trường ảo lần lượt bằng lệnh:
+    - python -m venv new_venv
+    - .\new_venv\Scripts\activate
+3. Cài đặt các thư viện cần thiết bên trong môi trường ảo
+
+4. chạy file app.py bằng lệnh python app.py (đã có kafka)
+
+Nếu cần test với http request flow thêm các bước sau:
+
+4. chạy file app_http.py thay vì app.py
+
+5. Tạo terminal mới và chạy lại môi trường ảo với lệnh .\new_venv\Scripts\activate
+
+6. chạy file test_api.py bằng lệnh python test_api.py
+
+5. mở trình duyệt và truy cập địa chỉ http://localhost:8001 để kiểm tra dữ liệu được lưu vào redis.
