@@ -4,7 +4,9 @@ import time
 import uuid
 import math
 from datetime import datetime
+
 from kafka import KafkaProducer
+
 from product_store import ProductStore
 
 
@@ -67,6 +69,7 @@ class DataGenerator:
         }
 
         return json.dumps(event)  # Convert dictionary to JSON string
+
 
     def run(self, products):
         while True:
